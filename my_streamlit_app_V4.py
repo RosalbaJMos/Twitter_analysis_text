@@ -3,7 +3,9 @@ import io
 import logging
 import re
 import warnings
+import webbrowser
 from pprint import pprint
+from datetime import datetime
 
 # Gensim
 import gensim
@@ -12,6 +14,7 @@ import matplotlib.pyplot as plt
 
 # NLTK Stop words
 import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 import numpy as np
 import pandas as pd
@@ -24,23 +27,28 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-nltk.download('stopwords')
-import nltk
+#  Bar_chart race
+import bar_chart_race as bcr
+
 
 stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
-from datetime import datetime
 
-#  Bar_chart race
-import bar_chart_race as bcr
 
 # Sidebar - Collects user input features into dataframe
 with st.sidebar.header('1. Upload your CSV data'):
     uploaded_file = st.sidebar.file_uploader("Upload your input CSV file", type=["csv"])
 
 
+st.image('Twitter_Bird.png', width=100)
 st.title("Analysis of tweets")
+
+url = 'https://github.com/RosalbaJMos/Twitter_analysis_text'
+
+if st.button('My GitHub'):
+    webbrowser.open_new_tab(url)
+
 
 with st.sidebar.header('2. Set Parameters'):
     n_samples=st.sidebar.slider('No. samples', 500, 1000, 2000)
@@ -157,17 +165,16 @@ def plot_top_words(model, feature_names, n_top_words, title):
 def build_model(df):
     df = df.loc[:] # FOR TESTING PURPOSE, COMMENT THIS OUT FOR PRODUCTION
     
-    st.markdown('**1.2. The dimensions of your data set**')
-    st.info(df.shape)
+    st.markdown('***1.2. The number of tweets in your data set : ***')
+    st.info(len(df.index))
 
-    st.markdown('**1.3. Variable details**:')
-    st.info(list(df.columns[:]))
-
-    st.markdown('**1.4. This is the list of the top users**')
+    st.markdown('**1.3. This is the list of the top 10 users**')
     top_cited_users(df)
-    st.write(top_cited_users(df).head(10))
+    #st.write(top_cited_users(df).head(10))
+    st.table(top_cited_users(df).head(10))
 
     ### Show the video of retweets 
+    st.markdown('**1.4. This plot shows the most retweeted users in your data**')
     bar_race()
     video_file = open('retweets_video.mp4', 'rb') #enter the filename with filepath
     video_bytes = video_file.read() #reading the file
@@ -199,12 +206,16 @@ def build_model(df):
     dense=dtm_tfidf.todense()
     lst1 = dense.tolist()
     df2 = pd.DataFrame(lst1, columns=tfidf_feature_names)
+    
+    st.markdown('**1.5. The most used words in your dataset are displayed here**')
     Titter_Wordclouds(df2)
 
     lda = LatentDirichletAllocation(n_components=n_components, max_iter=5, learning_method="online", learning_offset=50.0,
     random_state=0,) 
     lda.fit(dtm_tfidf)
-    plot_top_words(lda, tfidf_feature_names, n_top_words, 'These are the top words per topic')
+    
+    st.markdown('**1.6. These are most used words per topic **')
+    plot_top_words(lda, tfidf_feature_names, n_top_words, 'Top words per topic')
 
 
 #--------------------------------------------LDA CORPORA DICTIONARY MODEL---------------------------------------------
@@ -231,9 +242,8 @@ if uploaded_file is not None:
     st.write(df.head(10))
     build_model(df)
 
-else:
-        
-    st.info('This is an example of analysis done for a data set about tweets on "chemistry". If you wish to analyse your own data set, please upload it')
+else:        
+    st.markdown('***This is an example of an analysis done for a data set about tweets on "chemistry". If you wish to analyse your own data set, please upload it***')
     df = pd.read_csv('tweets_about_chemistry_vsm.csv')
     st.write(df.head(10))
     build_model(df)
