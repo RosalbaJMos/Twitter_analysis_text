@@ -1,32 +1,39 @@
-import streamlit as st
-import numpy as np
-import pandas as pd
-import re
 import base64
 import io
-from sklearn.model_selection import train_test_split
-from sklearn import datasets, linear_model
-from sklearn.metrics import mean_squared_error, r2_score
-import plotly.express as px
+import logging
+import re
+import warnings
 from pprint import pprint
 
 # Gensim
-import gensim, spacy, logging, warnings
+import gensim
 import gensim.corpora as corpora
-from gensim.utils import simple_preprocess
-from gensim.models import CoherenceModel
 import matplotlib.pyplot as plt
 
 # NLTK Stop words
 import nltk
-nltk.download('stopwords')
 from nltk.corpus import stopwords
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import spacy
+import streamlit as st
+from gensim.models import CoherenceModel
+from gensim.utils import simple_preprocess
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+
+nltk.download('stopwords')
+import nltk
+
 stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
+from datetime import datetime
+
 #  Bar_chart race
 import bar_chart_race as bcr
-from datetime import datetime
 
 # Sidebar - Collects user input features into dataframe
 with st.sidebar.header('1. Upload your CSV data'):
@@ -62,12 +69,12 @@ def imagedownload(plt, filename):
 # 2. Function to create a twitter Wordcloud
 def Titter_Wordclouds(X):
     from PIL import Image
-    from wordcloud import WordCloud, STOPWORDS
+    from wordcloud import WordCloud
     mask = np.array(Image.open('Twitter_mask.png'))
     font_path = "PICOWA__.TTF" 
     
     wordcloud = WordCloud(
-                      stopwords=STOPWORDS,
+                      stopwords=stopwords,
                       background_color='white',
                       mask=mask, font_path=font_path, colormap = 'tab20').generate_from_frequencies(X.T.sum(axis=1))
     plt.figure(figsize = (12, 12), facecolor = None) 
@@ -175,11 +182,12 @@ def build_model(df):
 
     #---------------------------CREATE TOPICS USING LDA USING TFIDF ---------------------------------------------------------------
     from time import time
-    import matplotlib.pyplot as plt
 
-    from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-    from sklearn.decomposition import NMF, LatentDirichletAllocation
+    import matplotlib.pyplot as plt
     from sklearn.datasets import fetch_20newsgroups
+    from sklearn.decomposition import NMF, LatentDirichletAllocation
+    from sklearn.feature_extraction.text import (CountVectorizer,
+                                                 TfidfVectorizer)
 
     tfidf_vectorizer = TfidfVectorizer(strip_accents = 'unicode',
                                 stop_words = 'english',
